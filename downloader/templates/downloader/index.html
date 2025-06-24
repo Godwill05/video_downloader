@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Téléchargeur de Vidéos - Moderne</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="shortcut icon" href="https://icons-for-free.com/download-131988545552535194/" type="image/x-icon">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#035c80',
+            'primary-dark': '#024a6b',
+            'primary-light': '#0470a0'
+          },
+          animation: {
+            'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'bounce-slow': 'bounce 2s infinite',
+            'spin-slow': 'spin 3s linear infinite',
+            'fade-in': 'fadeIn 0.5s ease-in-out',
+            'slide-up': 'slideUp 0.6s ease-out'
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(30px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-primary via-primary-dark to-slate-900">
+  <!-- Particles Background -->
+  <div id="particles" class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary-dark/20 to-slate-900/20"></div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl">
+      <!-- Header -->
+      <div class="text-center mb-8 animate-fade-in">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-primary-light rounded-full mb-4 shadow-2xl transform hover:scale-110 transition-transform duration-300">
+          <i class="fas fa-download text-2xl text-white"></i>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+          Téléchargeur Vidéo
+        </h1>
+        <p class="text-xl text-blue-200 mb-8">
+          Téléchargez vos vidéos préférées en haute qualité
+        </p>
+      </div>
+
+      <!-- Main Card -->
+      <div class="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 animate-slide-up">
+        <!-- URL Input Section -->
+        <div class="mb-8">
+          <label for="video-url" class="block text-white text-lg font-semibold mb-4">
+            <i class="fas fa-link mr-2 text-primary-light"></i>URL de la vidéo
+          </label>
+          <div class="relative">
+            <input type="url" id="video-url" placeholder="Collez l'URL YouTube, TikTok, Instagram, Twitter..."
+              class="w-full px-6 py-4 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-4 focus:ring-primary-light/50 focus:border-primary-light transition-all duration-300 text-lg backdrop-blur-sm">
+            <button id="fetch-info-btn"
+              class="absolute right-2 top-2 bottom-2 px-6 bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+              <i class="fas fa-search mr-2"></i>Analyser
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden text-center py-8">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-primary-light rounded-full mb-4 animate-spin-slow">
+            <i class="fas fa-spinner text-2xl text-white"></i>
+          </div>
+          <p class="text-white text-lg">Analyse de la vidéo en cours...</p>
+        </div>
+
+        <!-- Video Preview Section -->
+        <div id="video-preview" class="hidden mb-8 animate-fade-in">
+          <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+            <div class="flex flex-col md:flex-row gap-6">
+              <!-- Thumbnail -->
+              <div class="md:w-1/3">
+                <img id="video-thumbnail" class="w-full h-48 object-cover rounded-xl shadow-lg" alt="Miniature">
+              </div>
+
+              <!-- Video Info -->
+              <div class="md:w-2/3">
+                <h3 id="video-title" class="text-xl font-bold text-white mb-3"></h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-blue-200">
+                  <div><i class="fas fa-user mr-2 text-primary-light"></i><span id="video-uploader"></span></div>
+                  <div><i class="fas fa-clock mr-2 text-primary-light"></i><span id="video-duration"></span></div>
+                  <div><i class="fas fa-eye mr-2 text-primary-light"></i><span id="video-views"></span></div>
+                  <div><i class="fas fa-calendar mr-2 text-primary-light"></i><span id="video-date"></span></div>
+                </div>
+                <p id="video-description" class="text-blue-200 mt-4 text-sm leading-relaxed line-clamp-3"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Download Options -->
+        <div id="download-options" class="hidden animate-fade-in">
+          <div class="grid md:grid-cols-2 gap-8">
+            <!-- Format Selection -->
+            <div>
+              <h3 class="text-white text-xl font-bold mb-4">
+                <i class="fas fa-file-video mr-2 text-primary-light"></i>Type de fichier
+              </h3>
+              <div class="space-y-3">
+                <label class="flex items-center p-4 bg-white/10 rounded-xl border border-white/20 cursor-pointer hover:bg-white/20 hover:border-primary-light/50 transition-all duration-300">
+                  <input type="radio" name="format_type" value="video" checked class="mr-4 text-primary-light focus:ring-primary-light">
+                  <div class="flex items-center">
+                    <i class="fas fa-video text-primary-light text-xl mr-3"></i>
+                    <div>
+                      <div class="text-white font-semibold">Vidéo (MP4)</div>
+                      <div class="text-blue-200 text-sm">Fichier vidéo complet</div>
+                    </div>
+                  </div>
+                </label>
+                <label class="flex items-center p-4 bg-white/10 rounded-xl border border-white/20 cursor-pointer hover:bg-white/20 hover:border-primary-light/50 transition-all duration-300">
+                  <input type="radio" name="format_type" value="audio" class="mr-4 text-primary-light focus:ring-primary-light">
+                  <div class="flex items-center">
+                    <i class="fas fa-music text-emerald-400 text-xl mr-3"></i>
+                    <div>
+                      <div class="text-white font-semibold">Audio (MP3)</div>
+                      <div class="text-blue-200 text-sm">Audio uniquement</div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Quality Selection -->
+            <div>
+              <h3 class="text-white text-xl font-bold mb-4">
+                <i class="fas fa-cog mr-2 text-primary-light"></i>Qualité
+              </h3>
+
+              <!-- Video Quality -->
+              <div id="video-quality-section">
+                <select id="video-quality" class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-4 focus:ring-primary-light/50 backdrop-blur-sm">
+                  <option value="best" style="color: black;">Meilleure qualité disponible</option>
+                  <option value="1080p" style="color: black;">1080p (Full HD)</option>
+                  <option value="720p" style="color: black;">720p (HD)</option>
+                  <option value="480p" style="color: black;">480p (SD)</option>
+                  <option value="360p" style="color: black;">360p (Mobile)</option>
+                </select>
+              </div>
+
+              <!-- Audio Quality -->
+              <div id="audio-quality-section" class="hidden">
+                <select id="audio-quality" class="w-full px-4 py-4 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-4 focus:ring-primary-light/50 backdrop-blur-sm">
+                  <option value="best" style="color: black;">Meilleure qualité</option>
+                  <option value="320" style="color: black;">320 kbps</option>
+                  <option value="256" style="color: black;">256 kbps</option>
+                  <option value="128" style="color: black;">128 kbps</option>
+                  <option value="96" style="color: black;">96 kbps</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Download Button -->
+          <div class="mt-8 text-center">
+            <button id="download-btn" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white text-lg font-bold rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transform hover:scale-105 transition-all duration-300">
+              <i class="fas fa-download mr-3 text-xl"></i>
+              Télécharger Maintenant
+            </button>
+          </div>
+        </div>
+
+        <!-- Download Progress -->
+        <div id="download-progress" class="hidden text-center py-8">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full mb-4 animate-pulse-slow">
+            <i class="fas fa-download text-2xl text-white"></i>
+          </div>
+          <p class="text-white text-lg">Téléchargement en cours...</p>
+          <div class="w-full bg-white/20 rounded-full h-2 mt-4">
+            <div class="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full animate-pulse" style="width: 45%"></div>
+          </div>
+          <p class="text-blue-200 text-sm mt-2">Cela peut prendre quelques instants selon la taille du fichier</p>
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="hidden mt-6 p-4 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
+          <div class="flex items-center">
+            <i class="fas fa-check-circle text-emerald-400 mr-3"></i>
+            <span id="success-text" class="text-emerald-200">Téléchargement terminé avec succès !</span>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="hidden mt-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl">
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-triangle text-red-400 mr-3"></i>
+            <span id="error-text" class="text-red-200"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Supported Platforms -->
+      <div class="mt-12 text-center animate-fade-in">
+        <p class="text-blue-200 mb-4 text-lg">Plateformes supportées :</p>
+        <div class="flex justify-center flex-wrap gap-4">
+          <span class="inline-flex items-center px-4 py-2 bg-white/10 rounded-full text-white text-sm backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
+            <i class="fab fa-youtube text-red-500 mr-2"></i>YouTube
+          </span>
+          <span class="inline-flex items-center px-4 py-2 bg-white/10 rounded-full text-white text-sm backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
+            <i class="fab fa-tiktok mr-2"></i>TikTok
+          </span>
+          <span class="inline-flex items-center px-4 py-2 bg-white/10 rounded-full text-white text-sm backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
+            <i class="fab fa-instagram text-pink-500 mr-2"></i>Instagram
+          </span>
+          <span class="inline-flex items-center px-4 py-2 bg-white/10 rounded-full text-white text-sm backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
+            <i class="fab fa-twitter text-blue-400 mr-2"></i>Twitter
+          </span>
+          <span class="inline-flex items-center px-4 py-2 bg-white/10 rounded-full text-white text-sm backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
+            <i class="fab fa-facebook text-blue-600 mr-2"></i>Facebook
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Elements
+    const videoUrl = document.getElementById('video-url');
+    const fetchInfoBtn = document.getElementById('fetch-info-btn');
+    const loading = document.getElementById('loading');
+    const videoPreview = document.getElementById('video-preview');
+    const downloadOptions = document.getElementById('download-options');
+    const downloadProgress = document.getElementById('download-progress');
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    const downloadBtn = document.getElementById('download-btn');
+    const formatRadios = document.querySelectorAll('input[name="format_type"]');
+    const videoQualitySection = document.getElementById('video-quality-section');
+    const audioQualitySection = document.getElementById('audio-quality-section');
+
+    // Show/Hide quality sections based on format selection
+    formatRadios.forEach(radio => {
+      radio.addEventListener('change', function () {
+        if (this.value === 'video') {
+          videoQualitySection.classList.remove('hidden');
+          audioQualitySection.classList.add('hidden');
+        } else {
+          videoQualitySection.classList.add('hidden');
+          audioQualitySection.classList.remove('hidden');
+        }
+      });
+    });
+
+    // Fetch video info
+    fetchInfoBtn.addEventListener('click', async () => {
+      const url = videoUrl.value.trim();
+      if (!url) {
+        showError('Veuillez entrer une URL valide');
+        return;
+      }
+
+      if (!isValidUrl(url)) {
+        showError('Format d\'URL invalide. Veuillez entrer une URL complète (ex: https://...)');
+        return;
+      }
+
+      showLoading();
+      hideError();
+      hideSuccess();
+
+      try {
+        const response = await fetch('/api/video-info/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({ url })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          displayVideoInfo(data.info);
+          showDownloadOptions();
+        } else {
+          showError(data.error || 'Erreur lors de l\'analyse de la vidéo');
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        showError('Erreur de connexion. Vérifiez votre connexion internet.');
+      }
+
+      hideLoading();
+    });
+
+    // Direct download function
+    downloadBtn.addEventListener('click', async () => {
+      const url = videoUrl.value.trim();
+      const formatType = document.querySelector('input[name="format_type"]:checked').value;
+      const quality = formatType === 'video' ? 
+        document.getElementById('video-quality').value : 
+        document.getElementById('audio-quality').value;
+
+      if (!url) {
+        showError('URL manquante');
+        return;
+      }
+
+      showDownloadProgress();
+      hideError();
+      hideSuccess();
+
+      try {
+        const formData = new FormData();
+        formData.append('url', url);
+        formData.append('format_type', formatType);
+        
+        if (formatType === 'video') {
+          formData.append('quality', quality);
+        } else {
+          formData.append('audio_quality', quality);
+        }
+
+        const response = await fetch('/api/download/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type');
+          
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            showError(data.error || 'Erreur lors du téléchargement');
+          } else {
+            // Direct file download
+            const blob = await response.blob();
+            const contentDisposition = response.headers.get('content-disposition');
+            
+            let filename = `download.${formatType === 'video' ? 'mp4' : 'mp3'}`;
+            if (contentDisposition) {
+              const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+              if (filenameMatch && filenameMatch[1]) {
+                filename = filenameMatch[1].replace(/['"]/g, '');
+              }
+            }
+
+            // Create download link
+            const downloadUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(downloadUrl);
+            
+            showSuccess('Téléchargement terminé avec succès !');
+          }
+        } else {
+          try {
+            const errorData = await response.json();
+            showError(errorData.error || `Erreur serveur (${response.status})`);
+          } catch (parseError) {
+            showError(`Erreur serveur (${response.status})`);
+          }
+        }
+      } catch (error) {
+        console.error('Erreur réseau:', error);
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          showError('Erreur de connexion au serveur. Vérifiez que le serveur est démarré.');
+        } else {
+          showError('Erreur de connexion lors du téléchargement');
+        }
+      }
+
+      hideDownloadProgress();
+    });
+
+    // Utility functions
+    function isValidUrl(string) {
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function showLoading() {
+      loading.classList.remove('hidden');
+      videoPreview.classList.add('hidden');
+      downloadOptions.classList.add('hidden');
+    }
+
+    function hideLoading() {
+      loading.classList.add('hidden');
+    }
+
+    function showDownloadProgress() {
+      downloadProgress.classList.remove('hidden');
+      downloadOptions.classList.add('hidden');
+    }
+
+    function hideDownloadProgress() {
+      downloadProgress.classList.add('hidden');
+      downloadOptions.classList.remove('hidden');
+    }
+
+    function showDownloadOptions() {
+      downloadOptions.classList.remove('hidden');
+    }
+
+    function showError(message) {
+      document.getElementById('error-text').textContent = message;
+      errorMessage.classList.remove('hidden');
+      setTimeout(() => hideError(), 8000);
+    }
+
+    function hideError() {
+      errorMessage.classList.add('hidden');
+    }
+
+    function showSuccess(message) {
+      document.getElementById('success-text').textContent = message;
+      successMessage.classList.remove('hidden');
+      setTimeout(() => hideSuccess(), 5000);
+    }
+
+    function hideSuccess() {
+      successMessage.classList.add('hidden');
+    }
+
+    function displayVideoInfo(info) {
+      document.getElementById('video-thumbnail').src = info.thumbnail || '';
+      document.getElementById('video-title').textContent = info.title || 'Titre non disponible';
+      document.getElementById('video-uploader').textContent = info.uploader || 'Inconnu';
+      document.getElementById('video-duration').textContent = formatDuration(info.duration);
+      document.getElementById('video-views').textContent = formatViews(info.view_count);
+      document.getElementById('video-date').textContent = formatDate(info.upload_date);
+      document.getElementById('video-description').textContent = info.description || 'Pas de description disponible';
+
+      videoPreview.classList.remove('hidden');
+    }
+
+    function formatDuration(seconds) {
+      if (!seconds) return 'N/A';
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      
+      if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function formatViews(views) {
+      if (!views) return 'N/A';
+      if (views >= 1000000000) {
+        return (views / 1000000000).toFixed(1) + 'B vues';
+      } else if (views >= 1000000) {
+        return (views / 1000000).toFixed(1) + 'M vues';
+      } else if (views >= 1000) {
+        return (views / 1000).toFixed(1) + 'K vues';
+      }
+      return views.toLocaleString() + ' vues';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      if (dateStr.length === 8) {
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        return `${day}/${month}/${year}`;
+      }
+      return dateStr;
+    }
+
+    // Enter key support
+    videoUrl.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        fetchInfoBtn.click();
+      }
+    });
+
+    // Animated particles background
+    function createParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'absolute w-1 h-1 bg-white/30 rounded-full animate-pulse';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 2 + 's';
+      particle.style.animationDuration = (Math.random() * 4 + 3) + 's';
+
+      document.getElementById('particles').appendChild(particle);
+
+      setTimeout(() => {
+        if (particle.parentNode) {
+          particle.remove();
+        }
+      }, 7000);
+    }
+
+    // Create particles periodically
+    setInterval(createParticle, 3000);
+
+    // Initial particles
+    for (let i = 0; i < 15; i++) {
+      setTimeout(() => createParticle(), i * 200);
+    }
+  </script>
+</body>
+</html>
