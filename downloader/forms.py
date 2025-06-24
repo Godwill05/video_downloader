@@ -69,6 +69,8 @@ class VideoForm(forms.Form):
             r'(facebook\.com)',
             r'(vimeo\.com)',
             r'(fr.pornhub\.com)',
+            r'(tukif\.porn)',
+            
         ]
         
         if not any(re.search(pattern, url, re.IGNORECASE) for pattern in supported_patterns):
